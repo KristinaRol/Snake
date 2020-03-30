@@ -1,30 +1,34 @@
 import pygame
-import classes
 import time
+
+import classes
+
 pygame.init()
 pygame.mixer.init()
 
 EVENT_FIRST_SONG_END = pygame.USEREVENT + 1
 pixel_width = 32
 
+MUSIC_VOLUME = 0.0
+
 # All entities that are processed within one frame of the game,
 # that is that they all implement the _process method
-snake = classes.Snake()
-snake2 = classes.Snake()
-snake2.visible = False
-stats = classes.Stats(snake, snake2)
-food = classes.Food(snake, snake2)
-snake.set_food(food)
-snake2.set_food(food)
-snake.other_snake = snake2
-snake2.other_snake = snake
-all_entities = [snake, food, stats]
+
+# List of all participating snakes
+snakes = []
+# List of all currently registered foods
+foods = []
+
+all_entities = []
 
 replay_button = classes.Button(940,260,90,50, "replay")
 replay_button.set_color((200,10,80))
 two_player_button = classes.Button(940,200,90,50, "2 player")
+buttons = [replay_button, two_player_button]
 single_player = True
 buttons = [two_player_button, replay_button]
+
+stats = classes.Stats(snakes)
 
 screenWidth = 1088
 screenHeight = int(screenWidth * 9 / 16) # height 612
@@ -34,11 +38,64 @@ pygame.display.set_caption("Snake")
 maximumFps = 60
 gamestart = False
 
-event_on_eat = classes.event(move, "on_eat", [food])
+event_on_eat = classes.Event(classes.Food.move, "on_eat", foods)
+
+def replay():
+    start_game(1, 1)
+
+def replay_two_player():
+    start_game(2, 1)
+
+# Resets the game with fiven snake num and food num
+def start_game(snake_num, food_num):
+    # setting globals
+    global stats
+    global snakes
+    global foods
+    global all_entities
+    global gamestart
+
+    gamestart = False
+
+    
+    # setting game entities
+    snakes.clear()
+    for i in range(snake_num):
+        snakes.append(classes.Snake())
+    foods.clear()
+    for i in range(food_num):
+        foods.append(classes.Food(snakes))
+
+    # special setting for two player mode
+    if snake_num == 2:
+        snakes[1].all_positions = [(4 * pixel_width, 10 * pixel_width), (5 * pixel_width, 10 * pixel_width), (6 * pixel_width, 10 * pixel_width), (7 * pixel_width, 10 * pixel_width)]
+        snakes[1].set_letter_keys()
+
+    all_entities.clear()
+    all_entities.extend(snakes)
+    all_entities.extend(foods)
+
+    # setting stats
+    stats = classes.Stats(snakes)
+
+
+# checks whether the two game entities are colldiding
+# and return True if so
+def colliding(e, x):
+    for i in range(len(e.all_positions)):
+        for j in range(len(x.all_positions)):
+        # When colliding with itself and the length of both obj is one
+        # no collision shall be detected
+            if (e == x and i == j and len(x.all_positions) > 1 and len(x.all_positions) > 1):
+                continue;
+        # if positions are equal then collision shall be detected
+            if (e.all_positions[i] == x.all_positions[j]):
+                return True
+
+    return False
+
 
 def gameLoop():
-    global snake
-    global snake2
     global stats
     global food
     global all_entities
@@ -46,14 +103,14 @@ def gameLoop():
     global single_player
     global gamestart
     run = True
-    background = pygame.image.load('img\\background.png')
+    background = pygame.image.load(classes.IMG_PATH + 'background.png')
     last = pygame.time.get_ticks()
 
-    pygame.mixer.music.load('sound\\music_start.ogg')
+    pygame.mixer.music.load(classes.SOUND_PATH + 'music_start.ogg')
     pygame.mixer.music.play()
-    pygame.mixer.music.set_volume(0.1)
+    pygame.mixer.music.set_volume(MUSIC_VOLUME)
     pygame.mixer.music.set_endevent(EVENT_FIRST_SONG_END)
-    pygame.mixer.music.queue('sound\\music_main.ogg')
+    pygame.mixer.music.queue(classes.SOUND_PATH + 'music_main.ogg')
 
     while run:
         pygame.time.wait(int(1000 / maximumFps))
@@ -61,8 +118,11 @@ def gameLoop():
             if event.type == pygame.QUIT:
                 run = False
             elif event.type == EVENT_FIRST_SONG_END:
-                pygame.mixer.music.load('sound\\music_main.ogg')
+                pygame.mixer.music.load(classes.SOUND_PATH + 'music_main.ogg')
                 pygame.mixer.music.play(-1)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for b in buttons:
+                    b.mouse_pressed(event.pos)
         
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
@@ -87,6 +147,14 @@ def gameLoop():
 
         window.blit(background, (0,0))
 
+        # Collision algorithm
+        for e in all_entities:
+            cols = []
+            for x in all_entities:
+                if colliding(x, e):
+                    cols.append(x)
+            e._collide(cols)
+
         now = pygame.time.get_ticks()
         if snake_alive() and gamestart == True:
             for entity in all_entities:
@@ -109,53 +177,12 @@ def gameLoop():
 
 
 def snake_alive():
-    global snake
-    global single_player
-    global snake2
-    if single_player:
-        return snake.alive
-    else:
-        return snake.alive and snake2.alive
+    global snakes
 
-
-def replay():
-    global gamestart
-    global snake
-    global snake2
-    global stats
-    global food
-    global all_entities
-    gamestart = False
-    snake = classes.Snake()
-    snake2.visible = False
-    stats = classes.Stats(snake, snake2)
-    food = classes.Food(snake, snake2)
-    snake.set_food(food)
-    snake.other_snake = snake2
-    snake2.other_snake = snake
-    all_entities = [snake, food, stats]
-
-
-def replay_two_player():
-    global gamestart
-    global snake
-    global snake2
-    global stats
-    global food
-    global all_entities
-    gamestart = False
-    snake = classes.Snake()
-    snake2 = classes.Snake()
-    snake2.visible = True
-    snake2.set_letter_keys()
-    snake2.all_positions = [(4 * pixel_width, 10 * pixel_width), (5 * pixel_width, 10 * pixel_width), (6 * pixel_width, 10 * pixel_width), (7 * pixel_width, 10 * pixel_width)]
-    stats = classes.Stats(snake, snake2)
-    food = classes.Food(snake, snake2)
-    snake.set_food(food)
-    snake2.set_food(food)
-    snake.other_snake = snake2
-    snake2.other_snake = snake
-    all_entities = [snake, snake2, food, stats]
+    tmp = True
+    for s in snakes:
+        tmp = tmp and s.alive
+    return tmp
 
 def set_multiplayer():
     global two_player_button 
@@ -170,6 +197,6 @@ def replay_func():
 replay_button.set_event(replay_func)
 
 
-
+start_game(1, 1)
 gameLoop()
 pygame.quit()

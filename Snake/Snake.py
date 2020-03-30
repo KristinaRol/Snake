@@ -34,6 +34,7 @@ pygame.display.set_caption("Snake")
 maximumFps = 60
 gamestart = False
 
+event_on_eat = classes.event(move, "on_eat", [food])
 
 def gameLoop():
     global snake

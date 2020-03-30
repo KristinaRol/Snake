@@ -20,12 +20,58 @@ class DiagDir(Enum):
 
 
 class GameEntity:
+
+    def __init__(self, reload_on_restart = true):
+        self.reload_on_restart = reload_on_restart
+        self.all_events = []
+
+    def add_event(self, event):
+        self.all_events.append(event)
+
     def _process(self, delta):
         pass
 
     def _draw(self, window):
         pass
 
+# Abstractation class for event processing that takes place between different entities
+class Event:
+    # All ids of currently registered events
+    all_events = {}
+
+    # initializes an event with a set goal function and the next id
+    # you can receive the id just via its property "id"
+    # when triggered the event will be called on all goal_entities
+    def __init__(self, goal_func, name = "", goal_entities = []):
+        self.goal_func = goal_func
+        self.id = len(all_events)
+        if name == "":
+            self.name = "id_" + self.id
+        else:
+            self.name = name
+        self.goal_entities = goal_entities
+        all_events[self.name] = self
+
+    # Triggers this event with given params on all goal entities
+    def trigger(self, params):
+        f = self.goal_func
+        if params == []:
+            if self.goal_entities == []:
+               f()
+            else:
+                for e in self.goal_entities:
+                    e.f()
+            return
+
+        if self.goal_entities == []:
+            f(params)
+        else:
+            for e in self.goal_entities:
+                e.f(params)
+        
+    # Triggers the event with given id and given parameters
+    def trigger_event(name, params):
+        allevents[name].trigger(params)
 
 class Snake(GameEntity):
 
@@ -56,6 +102,7 @@ class Snake(GameEntity):
         self.key_down = pygame.K_DOWN
         self.other_snake = 0
         self.red = False
+        super.__init__()
 
 
     def set_letter_keys(self):
@@ -164,7 +211,7 @@ class Snake(GameEntity):
 
     def move(self):
         if(self.ate_food()):
-            self.food.move()
+            Event.trigger_event("on_eat", [])
             Snake.effect.play()
             self.length+=1
         else:
@@ -204,9 +251,6 @@ class Snake(GameEntity):
         self.alive = False
 
 
-            
-
-
  #-------------------------------------------------------------------------------------------------------------------------------------
 
 class Food(GameEntity):
@@ -221,6 +265,7 @@ class Food(GameEntity):
         self.position = self.get_new_pos()
         self.fruit_sort = randint(0, 2)
         self.z_index = 8
+        super.__init__()
 
 
     def _process(self, delta):
@@ -255,14 +300,13 @@ class Stats(GameEntity):
     start_time = 0
     current_time = 0
 
-
     def __init__(self, snake, snake2):
         self.snake = snake
         self.snake2 = snake2
         self.length_snake = self.font.render("length 4", True, (0, 0, 0))
         self.length_snake2 = self.font.render("length 4", True, (0, 0, 0))
         self.z_index = 12
-
+        super.__init__(False)
 
     def _process(self, delta):
         self.length_snake = self.font.render("length " + str(self.snake.length), True, (0, 0, 0))
@@ -289,9 +333,6 @@ class Stats(GameEntity):
             self.current_time = time.time()
             window.blit(self.font.render("time: " + ("%.2f" % (self.current_time - self.start_time)), True, (0, 0, 0)), (940, 160))
 
-
-
-
 class Button(GameEntity):
 
     font = pygame.font.SysFont(pygame.font.get_default_font(), 30)
@@ -307,6 +348,7 @@ class Button(GameEntity):
         self.color = (200,0,0)
         self.pressed = False
         self.visible = True
+        super.__init__(False)
 
     def _process(self, delta):
         for event in pygame.event.get():

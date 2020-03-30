@@ -1,7 +1,10 @@
 import pygame
 import time
 
+import gamedef
 import classes
+import snake
+
 
 pygame.init()
 pygame.mixer.init()
@@ -38,7 +41,7 @@ pygame.display.set_caption("Snake")
 maximumFps = 60
 gamestart = False
 
-event_on_eat = classes.Event(classes.Food.move, "on_eat", foods)
+event_on_eat = gamedef.Event(classes.Food.move, "on_eat", foods)
 
 def replay():
     start_game(1, 1)
@@ -61,7 +64,7 @@ def start_game(snake_num, food_num):
     # setting game entities
     snakes.clear()
     for i in range(snake_num):
-        snakes.append(classes.Snake())
+        snakes.append(snake.Snake())
     foods.clear()
     for i in range(food_num):
         foods.append(classes.Food(snakes))
@@ -77,6 +80,7 @@ def start_game(snake_num, food_num):
 
     # setting stats
     stats = classes.Stats(snakes)
+    all_entities.append(stats)
 
 
 # checks whether the two game entities are colldiding
@@ -106,11 +110,11 @@ def gameLoop():
     background = pygame.image.load(classes.IMG_PATH + 'background.png')
     last = pygame.time.get_ticks()
 
-    pygame.mixer.music.load(classes.SOUND_PATH + 'music_start.ogg')
+    pygame.mixer.music.load(gamedef.SOUND_PATH + 'music_start.ogg')
     pygame.mixer.music.play()
     pygame.mixer.music.set_volume(MUSIC_VOLUME)
     pygame.mixer.music.set_endevent(EVENT_FIRST_SONG_END)
-    pygame.mixer.music.queue(classes.SOUND_PATH + 'music_main.ogg')
+    pygame.mixer.music.queue(gamedef.SOUND_PATH + 'music_main.ogg')
 
     while run:
         pygame.time.wait(int(1000 / maximumFps))
@@ -118,7 +122,7 @@ def gameLoop():
             if event.type == pygame.QUIT:
                 run = False
             elif event.type == EVENT_FIRST_SONG_END:
-                pygame.mixer.music.load(classes.SOUND_PATH + 'music_main.ogg')
+                pygame.mixer.music.load(gamedef.SOUND_PATH + 'music_main.ogg')
                 pygame.mixer.music.play(-1)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 for b in buttons:
@@ -185,14 +189,19 @@ def snake_alive():
     return tmp
 
 def set_multiplayer():
-    global two_player_button 
-    two_player_button.pressed = True
+    global snakes
+    global foods
+    if len(snakes) == 1:
+        start_game(2, len(foods))
+    else:
+        start_game(1, len(foods))
   
 two_player_button.set_event(set_multiplayer)
 
 def replay_func():
-    global replay_button
-    replay_button.pressed = True
+    global snakes
+    global foods
+    start_game(len(snakes), len(foods))
 
 replay_button.set_event(replay_func)
 

@@ -1,5 +1,8 @@
 import gamedef
 import pygame
+import classes
+import random
+from enum import Enum
 
 IMG_PATH = gamedef.IMG_PATH
 SOUND_PATH = gamedef.SOUND_PATH
@@ -20,12 +23,20 @@ class Snake(gamedef.GameEntity):
             Snake.last_renderered_tile = 0
         self.current_sprite = Snake.last_renderered_tile
 
+        # used in the soeed calculation of the snake
+        self.speed_base = 200
+        self.speed_modifier = 2.2
+
         self.alive = True
         self.length = 4
+
+        # setting score, that is now distinguished from length
+        self.score = 0
+        
         self.direction = gamedef.Direction.EAST
         self.direction_until_step = gamedef.Direction.EAST
-        self.time_between_move = 200
-        self.time_until_move = 200
+        self.time_between_move = self.speed_base
+        self.time_until_move = self.speed_base
         self.z_index = 10
         self.has_eaten = False
 
@@ -59,7 +70,22 @@ class Snake(gamedef.GameEntity):
             if col.name == "snake":
                 self.die()
             if col.name == "food":
+                if col.current_rarity == classes.Rarity.COMMON:
+                    self.score += 1
+                if col.current_rarity == classes.Rarity.UNCOMMON:
+                    self.score += 2
+                if col.current_rarity == classes.Rarity.SHINY:
+                    self.score += 10
+                
+                rnd_num = random.random()
+                if rnd_num < (1 / self.time_between_move) * 4:
+                    col.current_rarity = classes.Rarity.SHINY
+                elif rnd_num < (1 / self.time_between_move) * 30:
+                    col.current_rarity = classes.Rarity.UNCOMMON
+                else:
+                    col.current_rarity = classes.Rarity.COMMON
                 col.move()
+
                 Snake.effect.play()
                 self.length+=1
                 self.has_eaten = True
@@ -77,7 +103,9 @@ class Snake(gamedef.GameEntity):
         elif keys[self.keys[gamedef.Direction.SOUTH.value]] and self.direction != gamedef.Direction.NORTH:
             self.direction_until_step = gamedef.Direction.SOUTH
 
-        self.time_between_move = 200 + self.length * 2.2
+        self.time_between_move = self.speed_base - self.length * self.speed_modifier
+        if self.time_between_move < 10:
+            self.time_between_move = 10
         self.time_until_move -= delta
 
         if self.time_until_move < 0:

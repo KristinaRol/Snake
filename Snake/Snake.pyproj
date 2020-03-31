@@ -21,6 +21,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="src\buttons.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="src\classes.py" />
     <Compile Include="src\Game.py" />
     <Compile Include="src\gamedef.py" />
@@ -58,6 +61,7 @@
     <Content Include="img\tailR2.png" />
     <Content Include="img\tailU.png" />
     <Content Include="img\tailU2.png" />
+    <Content Include="sound\chaos_music.ogg" />
     <Content Include="sound\eat.ogg" />
     <Content Include="sound\music_main.ogg" />
     <Content Include="sound\music_start.ogg" />

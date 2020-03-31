@@ -1,5 +1,6 @@
 import pygame
 import time
+import random
 
 import gamedef
 import classes
@@ -65,6 +66,8 @@ def start_game(snake_num, food_num):
     snakes.clear()
     for i in range(snake_num):
         snakes.append(snake.Snake())
+    for s in snakes:
+        s.current_sprite = random.randint(0,3)
     foods.clear()
     for i in range(food_num):
         foods.append(classes.Food(snakes))

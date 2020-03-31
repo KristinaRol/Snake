@@ -7,18 +7,19 @@ pixel_width = gamedef.pixel_width
 
 class Snake(gamedef.GameEntity):
 
-    snakesquare = pygame.image.load(IMG_PATH + 'snakeSquare.png')
-    snakesquare2 = pygame.image.load(IMG_PATH + 'snakeSquare2.png')
-    head = [pygame.image.load(IMG_PATH + 'headU.png'),pygame.image.load(IMG_PATH + 'headR.png'),pygame.image.load(IMG_PATH + 'headD.png'),pygame.image.load(IMG_PATH + 'headL.png')]
-    head2 = [pygame.image.load(IMG_PATH + 'headU2.png'),pygame.image.load(IMG_PATH + 'headR2.png'),pygame.image.load(IMG_PATH + 'headD2.png'),pygame.image.load(IMG_PATH + 'headL2.png')]
-    tail = [pygame.image.load(IMG_PATH + 'tailU.png'),pygame.image.load(IMG_PATH + 'tailR.png'),pygame.image.load(IMG_PATH + 'tailD.png'),pygame.image.load(IMG_PATH + 'tailL.png')]
-    tail2 = [pygame.image.load(IMG_PATH + 'tailU2.png'),pygame.image.load(IMG_PATH + 'tailR2.png'),pygame.image.load(IMG_PATH + 'tailD2.png'),pygame.image.load(IMG_PATH + 'tailL2.png')]
-    corner = [pygame.image.load(IMG_PATH + 'cornerNE.png'),pygame.image.load(IMG_PATH + 'cornerSE.png'),pygame.image.load(IMG_PATH + 'cornerSW.png'),pygame.image.load(IMG_PATH + 'cornerNW.png')]
-    corner2 = [pygame.image.load(IMG_PATH + 'cornerNE2.png'),pygame.image.load(IMG_PATH + 'cornerSE2.png'),pygame.image.load(IMG_PATH + 'cornerSW2.png'),pygame.image.load(IMG_PATH + 'cornerNW2.png')]
+    tiles_snake1 = pygame.image.load(IMG_PATH + 'snake.png')
+
+    last_renderered_tile = -1
+
     pygame.mixer.init()
     effect = pygame.mixer.Sound(SOUND_PATH + 'eat.ogg')
 
     def __init__(self):
+        Snake.last_renderered_tile += 1
+        if (Snake.last_renderered_tile == 4):
+            Snake.last_renderered_tile = 0
+        self.current_sprite = Snake.last_renderered_tile
+
         self.alive = True
         self.length = 4
         self.direction = gamedef.Direction.EAST
@@ -28,14 +29,14 @@ class Snake(gamedef.GameEntity):
         self.z_index = 10
         self.has_eaten = False
 
+        # the current sprite set to select
+        self.current_sprite = 0
+
         # initializing position
         self.all_positions = [(4 * pixel_width, 8 * pixel_width), (5 * pixel_width, 8 * pixel_width), (6 * pixel_width, 8 * pixel_width), (7 * pixel_width, 8 * pixel_width)]
 
         # Setting keys
         self.keys = [pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN, pygame.K_LEFT]
-
-        #whatever this is, i figured it out it will fall like sparta
-        self.red = False
 
         # Calling super constructor
         super(Snake, self).__init__("snake")
@@ -85,78 +86,97 @@ class Snake(gamedef.GameEntity):
             self.time_until_move = self.time_between_move
       
 
-    def _draw(self, window):
-        head_dir = self.find_head_dir().value
-        tial_dir = self.find_tail_dir().value
+    def _draw(self, window):      
+        for i in range(len(self.all_positions)):
+            self.draw_tile(i, window)     
 
-        for i in range(1,len(self.all_positions) - 1): # geht k�rperteil ohne schwanz & kopf durch
-          if self.is_corner(i):
-            corner_dir = self.find_corner_dir(i).value
-            if self.red:
-                window.blit(Snake.corner2[corner_dir], self.all_positions[i])
-            else:
-                window.blit(Snake.corner[corner_dir], self.all_positions[i])
-          else:
-            if self.red:
-                window.blit(Snake.snakesquare2, self.all_positions[i])
-            else:
-                window.blit(Snake.snakesquare, self.all_positions[i])
-        if self.red:
-            window.blit(Snake.tail2[tial_dir], self.all_positions[0])
-            window.blit(Snake.head2[head_dir], (self.all_positions[len(self.all_positions) - 1][0] - 9, self.all_positions[len(self.all_positions) - 1][1] - 9))
+    #drawm the tile ad index idx to the window
+    def draw_tile(self, idx, window):
+
+        # the coordinates within the picture
+        x = 0
+        y = 0
+
+        # we are at the tail
+        if idx == 0:
+            if self.all_positions[1][0] > self.all_positions[idx][0]:
+                x = 7
+                y =  2 * self.current_sprite
+            elif self.all_positions[1][0] < self.all_positions[idx][0]:
+                x = 6
+                y = 2 * self.current_sprite
+            elif self.all_positions[1][1] > self.all_positions[idx][1]:
+                x = 7
+                y = 2 * self.current_sprite + 1
+            elif self.all_positions[1][1] < self.all_positions[idx][1]:
+                x = 6
+                y = 2 * self.current_sprite + 1
+        # we are at the head
+        elif idx == len(self.all_positions) - 1:
+            if self.all_positions[idx - 1][0] > self.all_positions[idx][0]:
+                x = 5
+                y = 2 * self.current_sprite
+            elif self.all_positions[idx - 1][0] < self.all_positions[idx][0]:
+                x = 5
+                y = 2 * self.current_sprite + 1
+            elif self.all_positions[idx - 1][1] > self.all_positions[idx][1]:
+                x = 4
+                y = 2 * self.current_sprite + 1
+            elif self.all_positions[idx - 1][1] < self.all_positions[idx][1]:
+                x = 4
+                y = 2 * self.current_sprite
         else:
-            window.blit(Snake.tail[tial_dir], self.all_positions[0])
-            window.blit(Snake.head[head_dir], (self.all_positions[len(self.all_positions) - 1][0] - 9, self.all_positions[len(self.all_positions) - 1][1] - 9))
+            # if we are in the middle
+            if self.all_positions[idx][0] > self.all_positions[idx - 1][0]:
+                if self.all_positions[idx + 1][0] > self.all_positions[idx][0]:
+                    x = 0
+                    y = 2 * self.current_sprite
+                elif self.all_positions[idx + 1][1] > self.all_positions[idx][1]:
+                    x = 2
+                    y = 2 * self.current_sprite
+                elif self.all_positions[idx + 1][1] < self.all_positions[idx][1]:
+                    x = 3
+                    y = 1 + 2 * self.current_sprite
+            elif self.all_positions[idx][0] < self.all_positions[idx - 1][0]:
+                if self.all_positions[idx + 1][0] < self.all_positions[idx][0]:
+                    x = 1
+                    y = 2 * self.current_sprite
+                elif self.all_positions[idx + 1][1] > self.all_positions[idx][1]:
+                    x = 3
+                    y = 2 * self.current_sprite
+                elif self.all_positions[idx + 1][1] < self.all_positions[idx][1]:
+                    x = 2
+                    y = 1 + 2 * self.current_sprite
+            else:
+                if self.all_positions[idx][1] > self.all_positions[idx - 1][1]:
+                    if self.all_positions[idx][0] > self.all_positions[idx+1][0]:
+                        x = 3
+                        y = 2 * self.current_sprite + 1
+                    elif self.all_positions[idx][0] < self.all_positions[idx+1][0]:
+                        x = 2
+                        y = 2 * self.current_sprite + 1
+                    else:
+                        x = 0
+                        y = 1 + 2 * self.current_sprite
+                else:
+                   if self.all_positions[idx][0] > self.all_positions[idx+1][0]:
+                        x = 2
+                        y = 2 * self.current_sprite
+                   elif self.all_positions[idx][0] < self.all_positions[idx+1][0]:
+                       x = 3
+                       y = 2 * self.current_sprite 
+                       
+                   else:
+                        x = 1
+                        y = 1 + 2 * self.current_sprite
 
+        window.blit(self.tiles_snake1, self.all_positions[idx], (x * pixel_width, y * pixel_width, pixel_width, pixel_width))
 
     def check_out_of_bounds(self):
         x = self.all_positions[-1][0]
         y = self.all_positions[-1][1]
         if x < 0 or y < 0 or x > 900 or y > 600:
             self.alive = False
-
-
-    def find_head_dir(self):
-        last = len(self.all_positions) - 1
-        if self.all_positions[last][0] < self.all_positions[last - 1][0]:
-            return gamedef.Direction.EAST
-        elif self.all_positions[last][0] > self.all_positions[last - 1][0]:
-            return gamedef.Direction.WEST
-        elif self.all_positions[last][1] > self.all_positions[last - 1][1]:
-            return gamedef.Direction.NORTH
-        else:
-            return gamedef.Direction.SOUTH
-
-
-    def find_tail_dir(self):
-        if self.all_positions[0][0] < self.all_positions[1][0]:
-            return gamedef.Direction.EAST
-        elif self.all_positions[0][0] > self.all_positions[1][0]:
-            return gamedef.Direction.WEST
-        elif self.all_positions[0][1] > self.all_positions[1][1]:
-            return gamedef.Direction.NORTH
-        else:
-            return gamedef.Direction.SOUTH
-
-
-    def is_corner(self, i):
-        upper = self.all_positions[i][1] != self.all_positions[i + 1][1]
-        lower = self.all_positions[i][1] != self.all_positions[i - 1][1]
-        return lower != upper
-
-
-    def find_corner_dir(self, i):
-        upper = self.all_positions[i][1] > self.all_positions[i + 1][1] or self.all_positions[i][1] > self.all_positions[i - 1][1]
-        lower = self.all_positions[i][1] < self.all_positions[i - 1][1] or self.all_positions[i][1] < self.all_positions[i + 1][1]
-        right = self.all_positions[i][0] < self.all_positions[i + 1][0] or self.all_positions[i][0] < self.all_positions[i - 1][0]
-        if right and upper and not(lower):
-            return gamedef.DiagDir.SW
-        elif right and lower and not(upper):
-            return gamedef.DiagDir.NW
-        elif upper and not(lower) and not(right):
-            return gamedef.DiagDir.SE
-        else:
-            return gamedef.DiagDir.NE
 
     # Called when the snake should move
     def move(self):
@@ -178,10 +198,6 @@ class Snake(gamedef.GameEntity):
             self.all_positions.pop(0)
         else:
             self.has_eaten = False
-        
-    def set_food(self, food):
-        self.food = food
-
 
     def die(self):
         self.alive = False

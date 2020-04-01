@@ -63,11 +63,10 @@
     <Content Include="img\tailU2.png" />
     <Content Include="sound\chaos_music.ogg" />
     <Content Include="sound\eat.ogg" />
+    <Content Include="sound\hard_music.ogg" />
     <Content Include="sound\music_main.ogg" />
     <Content Include="sound\music_start.ogg" />
     <Content Include="sound\Snake Baron.mp3" />
-    <Content Include="src\__pycache__\classes.cpython-37.pyc" />
-    <Content Include="src\__pycache__\gamedef.cpython-37.pyc" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="img\" />

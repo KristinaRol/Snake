@@ -4,13 +4,13 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>bb5ca322-f1e6-49a3-8fb4-b40fbf1a1964</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Snake.py</StartupFile>
-    <SearchPath>
-    </SearchPath>
+    <StartupFile>src/Game.py</StartupFile>
+    <SearchPath>src</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>Snake</Name>
     <RootNamespace>Snake</RootNamespace>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,10 +21,13 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="classes.py">
+    <Compile Include="src\buttons.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Snake.py" />
+    <Compile Include="src\classes.py" />
+    <Compile Include="src\Game.py" />
+    <Compile Include="src\gamedef.py" />
+    <Compile Include="src\snake.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="img\background.png" />
@@ -58,21 +61,19 @@
     <Content Include="img\tailR2.png" />
     <Content Include="img\tailU.png" />
     <Content Include="img\tailU2.png" />
+    <Content Include="sound\chaos_music.ogg" />
     <Content Include="sound\eat.ogg" />
-    <Content Include="sound\hard_music.ogg" />
     <Content Include="sound\music_main.ogg" />
     <Content Include="sound\music_start.ogg" />
     <Content Include="sound\Snake Baron.mp3" />
-<<<<<<< Updated upstream
-=======
-    <Content Include="sound\warmup_music.ogg" />
     <Content Include="src\__pycache__\classes.cpython-37.pyc" />
     <Content Include="src\__pycache__\gamedef.cpython-37.pyc" />
->>>>>>> Stashed changes
   </ItemGroup>
   <ItemGroup>
     <Folder Include="img\" />
     <Folder Include="sound\" />
+    <Folder Include="src\" />
+    <Folder Include="src\__pycache__\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

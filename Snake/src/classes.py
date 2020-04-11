@@ -12,14 +12,14 @@ IMG_PATH = gamedef.IMG_PATH
 # and the sendond entry is the amount of food obtainable in this category
 class Rarity(Enum):
     COMMON = (0, 3)
-    UNCOMMON = (1, 1)
+    UNCOMMON = (1, 1)   
     SHINY = (2, 3)
 
 class Food(gamedef.GameEntity):
 
     food = pygame.image.load(IMG_PATH + 'food.png')
     possible_positions = list(itertools.product(range(0,868,32), range(0,580,32)))
-
+    
 
     def __init__(self, entities, rarity = Rarity.COMMON):
         # self.entities provides all entities that this food will avoid when spawned.
